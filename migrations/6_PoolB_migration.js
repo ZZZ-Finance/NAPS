@@ -1,7 +1,7 @@
 const YearnRewards = artifacts.require("YearnRewards");
 // Stake UNI
-const rewardToken = "0xc9E5c5E9d1EAb2a5095ceB1769648b91E0a2e332";
-const stakingToken = "0x53Ac413ba4245e0BeE537dF04e9B34ee54EDDc49"
+const rewardToken = "0x9EBcF5928E1903f490707b24404beC32d85b5503";
+const stakingToken = "0xf63cF54f83932bf900838F8C4eb4A2DB6Dc23c96";
 
 module.exports = function (deployer) {
   deployer.deploy(YearnRewards,rewardToken,stakingToken);

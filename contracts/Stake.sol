@@ -637,24 +637,41 @@ interface Multiplier {
   function getTotalMultiplier(address account) external view returns (uint256);
 }
 
+interface CalculateCycle {
+  function calculate(uint256 deployedTime,uint256 currentTime,uint256 duration) external view returns(uint256);
+}
+
 contract YearnRewards is LPTokenWrapper, IRewardDistributionRecipient {
     // Token to be rewarded
     IERC20 public yfi = IERC20(address(0));
     Multiplier public multiplier = Multiplier(address(0));
+    CalculateCycle public calculateCycle = CalculateCycle(address(0));
     uint256 public DURATION;
 
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
+    uint256 public deployedTime;
+    uint256 public constant napsDiscountRange = 8 hours;
+    uint256 public constant napsLevelOneCost = 100000000000000000000;
+    uint256 public constant napsLevelTwoCost = 200000000000000000000;
+    uint256 public constant napsLevelThreeCost = 300000000000000000000;
+    uint256 public constant TenPercentBonus = 1 * 10 ** 17;
+    uint256 public constant TwentyPercentBonus = 2 * 10 ** 17;
+    uint256 public constant ThirtyPercentBonus = 3 * 10 ** 17;
+    uint256 public constant FourtyPercentBonus = 4 * 10 ** 17;
+    
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
+    mapping(address => uint256) public spentNAPS;
+    mapping(address => uint256) public NAPSlevel;
 
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
-
+    event Boost(uint256 level);
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
@@ -664,20 +681,19 @@ contract YearnRewards is LPTokenWrapper, IRewardDistributionRecipient {
         }
         _;
     }
-    constructor(address rewardToken,address stakingToken) public{
+    constructor(address rewardToken,address stakingToken,address calculateCycleAddr,address multiplierAddr) public{
       setBPT(stakingToken);
       yfi = IERC20(rewardToken);
+      calculateCycle = CalculateCycle(calculateCycleAddr);
+      multiplier = Multiplier(multiplierAddr);
       DURATION = 10 weeks;
+      deployedTime = block.timestamp;
     }
 
     function modify(address rewardToken,address stakingToken,uint256 duration) external onlyRewardDistribution {
         setBPT(stakingToken);
         yfi = IERC20(rewardToken);
         DURATION = duration;
-    }
-
-    function setMultiplierAddress(address multiplierAddress) external onlyRewardDistribution {
-      multiplier = Multiplier(multiplierAddress);
     }
 
     function lastTimeRewardApplicable() public view returns (uint256) {
@@ -699,12 +715,11 @@ contract YearnRewards is LPTokenWrapper, IRewardDistributionRecipient {
     }
 
     function earned(address account) public view returns (uint256) {
-        uint256 mult = multiplier.getTotalMultiplier(account);
         return
             balanceOf(account)
                 .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
                 .div(1e18)
-                .mul(mult)
+                .mul(getTotalMultiplier(account))
                 .div(1e18)
                 .add(rewards[account]);
     }
@@ -751,5 +766,56 @@ contract YearnRewards is LPTokenWrapper, IRewardDistributionRecipient {
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp.add(DURATION);
         emit RewardAdded(reward);
+    }
+    function setCycleContract(address _cycleContract) public onlyRewardDistribution {
+        calculateCycle = CalculateCycle(_cycleContract);
+    }
+    // naps stuff
+    function getLevel(address account) external view returns (uint256) {
+        return NAPSlevel[account];
+    }
+
+    function getSpent(address account) external view returns (uint256) {
+        return spentNAPS[account];
+    }
+    // Returns the number of naps token to boost
+    function calculateCost(uint256 level) public view returns(uint256) {
+        uint256 cycles = calculateCycle.calculate(deployedTime,block.timestamp,napsDiscountRange);
+        // // cost = initialCost * (0.9)^cycles = initial cost * (9^cycles)/(10^cycles)
+        if (level == 1) {
+            return napsLevelOneCost.mul(9 ** cycles).div(10 ** cycles);
+        }else if(level == 2) {
+            return napsLevelTwoCost.mul(9 ** cycles).div(10 ** cycles);
+        }else if(level ==3) {
+            return napsLevelThreeCost.mul(9 ** cycles).div(10 ** cycles);
+        }
+    }
+    
+    function purchase(uint256 level) external {
+        require(NAPSlevel[msg.sender] <= level,"Cannot downgrade level or same level");
+        uint256 cost = calculateCost(level);
+        uint256 finalCost = cost.sub(spentNAPS[msg.sender])
+        // Owner dev fund
+        yfi.safeTransferFrom(msg.sender,0x50b3830641A5fD46Ac191F168e3EAc638C40343C,finalCost);
+        spentNAPS[msg.sender] = spentNAPS[msg.sender].add(finalCost);
+        NAPSlevel[msg.sender] = level;
+        emit Boost(level);
+    }
+
+    function setMultiplierAddress(address multiplierAddress) external onlyRewardDistribution {
+      multiplier = Multiplier(multiplierAddress);
+    }
+
+    function getTotalMultiplier(address account) public view returns (uint256) {
+        uint256 zzzMultiplier = multiplier.getTotalMultiplier(account);
+        uint256 napsMultiplier = 0;
+        if(NAPSlevel[account] == 1) {
+            napsMultiplier = TenPercentBonus;
+        }else if(NAPSlevel[account] == 2) {
+            napsMultiplier = TwentyPercentBonus;
+        }else if(NAPSlevel[account] == 3) {
+            napsMultiplier = FourtyPercentBonus;
+        }
+        return zzzMultiplier.add(napsMultiplier).add(1*10**18);
     }
 }

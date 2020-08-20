@@ -13,11 +13,9 @@ contract Multiplier {
 
   address[] public pools;
   address public owner;
-  IERC20 public NAPS = IERC20(address(0));
   IERC20 public ZZZ = IERC20(address(0));
-  mapping(address => uint256) public spentNAPS;
-  mapping(address => uint256) public NAPSlevel;
-
+  
+  uint256 TwoPercentBonus = 2 * 10 ** 16;
   uint256 TenPercentBonus = 1 * 10 ** 17;
   uint256 TwentyPercentBonus = 2 * 10 ** 17;
   uint256 ThirtyPercentBonus = 3 * 10 ** 17;
@@ -29,19 +27,17 @@ contract Multiplier {
   uint256 NinetyPercentBonus = 9 * 10 ** 17;
   uint256 OneHundredPercentBonus = 1 * 10 ** 18;
 
-  constructor(address[] memory poolAddresses,address zzzAddress,address napsAddress) public{
+  constructor(address[] memory poolAddresses,address zzzAddress) public{
     pools = poolAddresses;
     ZZZ = IERC20(zzzAddress);
-    NAPS = IERC20(napsAddress);
     owner = msg.sender;
   }
   
   // Set the pool and zzz address if there are any errors.
-  function configure(address[] calldata poolAddresses,address zzzAddress,address napsAddress) external {
+  function configure(address[] calldata poolAddresses,address zzzAddress) external {
     require(msg.sender == owner,"Only the owner can call this function");
     pools = poolAddresses;
     ZZZ = IERC20(zzzAddress);
-    NAPS = IERC20(napsAddress);
   }
 
   // Returns the balance of the user's ZZZ accross all staking pools
@@ -56,64 +52,28 @@ contract Multiplier {
     total = total.add(ZZZ.balanceOf(account));
     return total;
   }
-  
-  function getLevel(address account) external view returns (uint256) {
-    if(NAPSlevel[account] == 0) {
-      return 1;
-    }
-    return NAPSlevel[account];
-  }
-
-  function getSpent(address account) external view returns (uint256) {
-    return spentNAPS[account];
-  }
-
-  // Purchase multiplier using naps
-  function purchase(uint256 amount) external {
-    // Send naps directly to dev wallet for funding
-    NAPS.safeTransferFrom(msg.sender,owner,amount);
-    spentNAPS[msg.sender] = spentNAPS[msg.sender].add(amount);
-    // Update naps level based on the new spentNaps
-    if(spentNAPS[msg.sender] < 100 * 10**18) {
-      NAPSlevel[msg.sender] = 1;
-    }else if(spentNAPS[msg.sender] >= 100 * 10*18 && spentNAPS[msg.sender] < 500 * 10 ** 18) {
-      NAPSlevel[msg.sender] = 2;
-    }else if(spentNAPS[msg.sender] >= 500 * 10 ** 18) {
-      NAPSlevel[msg.sender] = 3;
-    }
-  }
 
   function getPermanentMultiplier(address account) public view returns (uint256) {
-    uint256 permanentMultiplier = 1 * 10**18;
-    uint256 zzzBalance = ZZZ.balanceOf(account);
-    if(zzzBalance > 0 && zzzBalance < 10 * 10**18) {
-      // More than 0 but less than 10. Additional 10% bonus
+    uint256 permanentMultiplier = 0;
+    uint256 zzzBalance = balanceOf(account);
+    if(zzzBalance >= 1 * 10**18 && zzzBalance < 5*10**18) {
+      // Between 1 to 5, 2 percent bonus
+      permanentMultiplier = permanentMultiplier.add(TwoPercentBonus);
+    }else if(zzzBalance >= 5 * 10**18 && zzzBalance < 10 * 10**18) {
+      // Between 5 to 10, 10 percent bonus
       permanentMultiplier = permanentMultiplier.add(TenPercentBonus);
-    }else if(zzzBalance >= 10 * 10**18 && zzzBalance < 50 * 10**18) {
-      // More than or equals to 10 but less than 50. Additional 30% bonus
-      permanentMultiplier = permanentMultiplier.add(ThirtyPercentBonus);
-    }else if(zzzBalance >= 50 * 10**18) {
-      // More than 50, additional 60% bonus
+    }else if(zzzBalance >= 10 * 10**18 && zzzBalance < 20 * 10 ** 18) {
+      // Between 10 and 20, 20 percent bonus
+      permanentMultiplier = permanentMultiplier.add(TwentyPercentBonus);
+    }else if(zzzBalance >= 20 * 10 ** 18) {
+      // More than 20, 60 percent bonus
       permanentMultiplier = permanentMultiplier.add(SixtyPercentBonus);
     }
     return permanentMultiplier;
   }
 
-  function getPurchaseMultiplier(address account) public view returns (uint256) {
-    uint256 purchasedMultiplier = 1 * 10**18;
-    uint256 level = NAPSlevel[account];
-    // Level 1. Add 10% bonus
-    if(level == 1) {
-      purchasedMultiplier = purchasedMultiplier.add(TenPercentBonus);
-    }else if(level == 2) {
-      purchasedMultiplier = purchasedMultiplier.add(TwentyPercentBonus);
-    }else if(level == 3) {
-      purchasedMultiplier = purchasedMultiplier.add(ThirtyPercentBonus);
-    }
-    return purchasedMultiplier;
-  }
-
   function getTotalMultiplier(address account) public view returns (uint256) {
-    return getPermanentMultiplier(account).mul(getPurchaseMultiplier(account)).div(1e18);
+    uint256 multiplier = getPermanentMultiplier(account);
+    return multiplier;
   }
 }
