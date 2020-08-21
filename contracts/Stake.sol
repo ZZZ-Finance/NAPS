@@ -654,9 +654,9 @@ contract YearnRewards is LPTokenWrapper, IRewardDistributionRecipient {
     uint256 public rewardPerTokenStored;
     uint256 public deployedTime;
     uint256 public constant napsDiscountRange = 8 hours;
-    uint256 public constant napsLevelOneCost = 100000000000000000000;
-    uint256 public constant napsLevelTwoCost = 200000000000000000000;
-    uint256 public constant napsLevelThreeCost = 300000000000000000000;
+    uint256 public constant napsLevelOneCost = 10000000000000000000000;
+    uint256 public constant napsLevelTwoCost = 20000000000000000000000;
+    uint256 public constant napsLevelThreeCost = 30000000000000000000000;
     uint256 public constant TenPercentBonus = 1 * 10 ** 17;
     uint256 public constant TwentyPercentBonus = 2 * 10 ** 17;
     uint256 public constant ThirtyPercentBonus = 3 * 10 ** 17;
@@ -781,6 +781,10 @@ contract YearnRewards is LPTokenWrapper, IRewardDistributionRecipient {
     // Returns the number of naps token to boost
     function calculateCost(uint256 level) public view returns(uint256) {
         uint256 cycles = calculateCycle.calculate(deployedTime,block.timestamp,napsDiscountRange);
+        // Cap it to 5 times
+        if(cycles > 5) {
+            cycles = 5;
+        }
         // // cost = initialCost * (0.9)^cycles = initial cost * (9^cycles)/(10^cycles)
         if (level == 1) {
             return napsLevelOneCost.mul(9 ** cycles).div(10 ** cycles);
@@ -794,7 +798,7 @@ contract YearnRewards is LPTokenWrapper, IRewardDistributionRecipient {
     function purchase(uint256 level) external {
         require(NAPSlevel[msg.sender] <= level,"Cannot downgrade level or same level");
         uint256 cost = calculateCost(level);
-        uint256 finalCost = cost.sub(spentNAPS[msg.sender])
+        uint256 finalCost = cost.sub(spentNAPS[msg.sender]);
         // Owner dev fund
         yfi.safeTransferFrom(msg.sender,0x50b3830641A5fD46Ac191F168e3EAc638C40343C,finalCost);
         spentNAPS[msg.sender] = spentNAPS[msg.sender].add(finalCost);

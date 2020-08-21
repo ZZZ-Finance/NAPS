@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at Etherscan.io on 2020-08-21
+*/
+
 pragma solidity ^0.5.17;
 library SafeMath {
     /**
