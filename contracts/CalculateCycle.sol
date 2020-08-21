@@ -144,7 +144,7 @@ library SafeMath {
 contract CalculateCyle {
   using SafeMath for uint256;
   function calculate(uint256 deployedTime,uint256 currentTime,uint256 duration) public view returns(uint256) {
-    uint256 cycles = (deployedTime.sub(deployedTime)).div(duration);
+    uint256 cycles = (deployedTime.sub(currentTime)).div(duration);
     return cycles;
   }
 }
