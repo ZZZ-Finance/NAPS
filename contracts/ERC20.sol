@@ -6,7 +6,7 @@
  *Submitted for verification at Etherscan.io on 2020-07-26
 */
 
-pragma solidity ^0.5.16;
+pragma solidity >=0.4.21 <0.8.0;
 
 interface IERC20 {
     function totalSupply() external view returns (uint);

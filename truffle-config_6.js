@@ -22,11 +22,13 @@ module.exports = {
 
   compilers: {
     solc: {
-      version: "0.5.17",
+      version: "0.6.0",
       optimizer: {
             enabled: true,
             runs: 555
         }  
     }
-  }
+  },
+
+  contracts_directory: 'contracts_6/'
 }

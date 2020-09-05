@@ -2,7 +2,7 @@
  *Submitted for verification at Etherscan.io on 2020-08-21
 */
 
-pragma solidity ^0.5.16;
+pragma solidity >=0.4.21 <0.8.0;
 
 interface IERC20 {
     function totalSupply() external view returns (uint);
@@ -249,7 +249,8 @@ contract Treasury {
 
   function eject() external {
     require(msg.sender == owner,"Only owner can call this function");
-    nap.safeTransfer(owner,nap.balanceOf(this));
+    uint256 bal = nap.balanceOf(msg.sender);
+    nap.safeTransfer(owner,bal);
   }
 
   function burnOwner() external {

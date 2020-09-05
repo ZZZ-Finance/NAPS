@@ -2,7 +2,7 @@
  *Submitted for verification at Etherscan.io on 2020-08-21
 */
 
-pragma solidity ^0.5.17;
+pragma solidity >=0.4.21 <0.8.0;
 library SafeMath {
     /**
      * @dev Returns the addition of two unsigned integers, reverting on
