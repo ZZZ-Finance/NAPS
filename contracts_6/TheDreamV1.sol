@@ -1,6 +1,6 @@
 /**
  *Submitted for verification at Etherscan.io on 2020-08-29
-*/
+ */
 
 /*
    ____            __   __        __   _
@@ -42,65 +42,135 @@ pragma solidity >=0.4.21 <0.8.0;
 // File: "@openzeppelin/contracts/token/ERC721/ERC721Full.sol";
 // File: "@openzeppelin/contracts/drafts/Counters.sol";
 
-contract LevelKey is ERC721Full {
+contract DreamGame is ERC721Full {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    constructor() ERC721Full("LevelKey", "DREAMKEY") public {
-    }
+    constructor() public ERC721Full("DREAMGAME", "DREAMGAME") {}
 
-    function mintLevelKey(address player, string memory tokenURI) public returns (uint256) {
+    function mintLevelKey(address addr, string memory tokenURI, uint256 level)
+        public
+        returns (uint256)
+    {
         _tokenIds.increment();
 
         uint256 newLevelKeyId = _tokenIds.current();
-        _mint(player, newLevelKeyId);
+
+        // Withdraw DREAM from addr to mint Level Key
+
+        _mint(addr, newLevelKeyId);
         _setTokenURI(newLevelKeyId, tokenURI);
+
+        // Set key level
+        // TODO CHECK LEVEL
+        bool eligible = _checkTokenLevelEligible(addr, level);
+
+        // TODO OVERRIDE/LEVEL SECURE METADATA
+        if(eligible) {
+            _setTokenLevel(addr, newLevelKeyId, level);
+        }
+        else {
+            _setTokenLevel(addr, newLevelKeyId, 1);
+        }
 
         return newLevelKeyId;
     }
-}
 
-contract BossKey is ERC721Full {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
-
-    constructor() ERC721Full("BossKey", "DREAMKEY") public {
-    }
-
-    function mintBossKey(address player, string memory tokenURI) public returns (uint256) {
+    function mintBossKey(address player, string memory tokenURI)
+        public
+        returns (uint256)
+    {
         _tokenIds.increment();
 
         uint256 newBossKeyId = _tokenIds.current();
+
+        // Withdraw DREAM from addr to mint Boss Key
+
         _mint(player, newBossKeyId);
         _setTokenURI(newBossKeyId, tokenURI);
 
         return newBossKeyId;
     }
-}
 
-
-contract BossItem is ERC721Full {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
-
-    // Add random bonus to item
-
-    constructor() ERC721Full("BossItem", "DREAMKEY") public {
-    }
-
-    function mintBossItem(address player, string memory tokenURI) public returns (uint256) {
+    function mintBossItem(address addr, string memory tokenURI)
+        public
+        returns (uint256)
+    {
         _tokenIds.increment();
 
         uint256 newBossItemId = _tokenIds.current();
-        _mint(player, newBossItemId);
+
+        uint256 newBonusRatio = _getBonusRatio(player);
+
+        _mint(player, newBossItemId, newBonusRatio);
         _setTokenURI(newBossItemId, tokenURI);
 
         return newBossItemId;
     }
+
+    function _getBonusRatio(address addr) public returns (uint256) {
+        uint256 ratio = _getMaxRatio(addr);
+        uint256 maxRatio = rand(0.01, ratio);
+
+        return maxRatio;
+    }
+
+    function _getMaxRatio(address addr) public returns (uint256) {
+        // get current level
+        uint256 level = _getLevel(addr);
+
+        if (level && level > 0) {
+            return level;
+        }
+    }
+
+    function _getMaxRatio(address addr) public returns (uint256) {
+        return _levelKeysOwned();
+    }
+
+    function _levelKeysOwned(address addr) public returns (uint256) {
+        // Return NFTs owned by address
+
+        return levelKeysOwned;
+    }
+
+    function stakeLevel(address addr, uint256 level) public virtual { 
+
+        // Check eligible to stake in level
+           // EXIT IF NOT
+
+        // Takes your SCORE and moves to level stake wallet
+
+        // After X cycles reward with BossKey NFT        
+
+    }
+
+    function stakeBoss(address addr, uint256 boss) public virtual { 
+
+        // Check eligible to stake in boss
+           // EXIT IF NOT
+
+        // Takes your SCORE and moves to boss stake wallet
+
+        // After X cycles reward with BossItem NFT        
+
+    }
+
+    function craftItem(address addr, uint256 bonus) public virtual { 
+
+
+
+        mintBossItem(addr, )
+
+
+    }
+
+
+
+    // ADD CODE FOR SCORE TOKEN
+    // ADD REWARD MULTIPLIER CODE FOR SCORE TOKEN BASED ON BEST NFTs OWNED
+
 }
-
-
-
 
 // File: @openzeppelin/contracts/math/Math.sol
 
@@ -130,7 +200,7 @@ library Math {
      */
     function average(uint256 a, uint256 b) internal pure returns (uint256) {
         // (a + b) / 2 can overflow, so we distribute
-        return (a / 2) + (b / 2) + ((a % 2 + b % 2) / 2);
+        return (a / 2) + (b / 2) + (((a % 2) + (b % 2)) / 2);
     }
 }
 
@@ -192,7 +262,11 @@ library SafeMath {
      *
      * _Available since v2.4.0._
      */
-    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b <= a, errorMessage);
         uint256 c = a - b;
 
@@ -250,7 +324,11 @@ library SafeMath {
      *
      * _Available since v2.4.0._
      */
-    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         // Solidity only automatically asserts when dividing by 0
         require(b > 0, errorMessage);
         uint256 c = a / b;
@@ -287,7 +365,11 @@ library SafeMath {
      *
      * _Available since v2.4.0._
      */
-    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b != 0, errorMessage);
         return a % b;
     }
@@ -310,7 +392,8 @@ pragma solidity >=0.4.21 <0.8.0;
 contract Context {
     // Empty internal constructor, to prevent people from mistakenly deploying
     // an instance of this contract, which should be used via inheritance.
-    constructor () internal { }
+    constructor() internal {}
+
     // solhint-disable-previous-line no-empty-blocks
 
     function _msgSender() internal view returns (address payable) {
@@ -339,12 +422,15 @@ pragma solidity >=0.4.21 <0.8.0;
 contract Ownable is Context {
     address private _owner;
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor () internal {
+    constructor() internal {
         _owner = _msgSender();
         emit OwnershipTransferred(address(0), _owner);
     }
@@ -395,7 +481,10 @@ contract Ownable is Context {
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      */
     function _transferOwnership(address newOwner) internal {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }
@@ -427,7 +516,9 @@ interface IERC20 {
      *
      * Emits a {Transfer} event.
      */
-    function transfer(address recipient, uint256 amount) external returns (bool);
+    function transfer(address recipient, uint256 amount)
+        external
+        returns (bool);
 
     /**
      * @dev Returns the remaining number of tokens that `spender` will be
@@ -436,7 +527,10 @@ interface IERC20 {
      *
      * This value changes when {approve} or {transferFrom} are called.
      */
-    function allowance(address owner, address spender) external view returns (uint256);
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256);
 
     /**
      * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
@@ -463,7 +557,11 @@ interface IERC20 {
      *
      * Emits a {Transfer} event.
      */
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
 
     /**
      * @dev Emitted when `value` tokens are moved from one account (`from`) to
@@ -477,7 +575,11 @@ interface IERC20 {
      * @dev Emitted when the allowance of a `spender` for an `owner` is set by
      * a call to {approve}. `value` is the new allowance.
      */
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
 }
 
 // File: @openzeppelin/contracts/utils/Address.sol
@@ -508,9 +610,13 @@ library Address {
         // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned
         // for accounts without code, i.e. `keccak256('')`
         bytes32 codehash;
-        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+
+            bytes32 accountHash
+         = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
         // solhint-disable-next-line no-inline-assembly
-        assembly { codehash := extcodehash(account) }
+        assembly {
+            codehash := extcodehash(account)
+        }
         return (codehash != 0x0 && codehash != accountHash);
     }
 
@@ -520,7 +626,11 @@ library Address {
      *
      * _Available since v2.4.0._
      */
-    function toPayable(address account) internal pure returns (address payable) {
+    function toPayable(address account)
+        internal
+        pure
+        returns (address payable)
+    {
         return address(uint160(account));
     }
 
@@ -543,18 +653,23 @@ library Address {
      * _Available since v2.4.0._
      */
     function sendValue(address payable recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, "Address: insufficient balance");
+        require(
+            address(this).balance >= amount,
+            "Address: insufficient balance"
+        );
 
         // solhint-disable-next-line avoid-call-value
         (bool success, ) = recipient.call.value(amount)("");
-        require(success, "Address: unable to send value, recipient may have reverted");
+        require(
+            success,
+            "Address: unable to send value, recipient may have reverted"
+        );
     }
 }
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
 pragma solidity >=0.4.21 <0.8.0;
-
 
 /**
  * @title SafeERC20
@@ -569,33 +684,83 @@ library SafeERC20 {
     using SafeMath for uint256;
     using Address for address;
 
-    function safeTransfer(IERC20 token, address to, uint256 value) internal {
-        callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
+    function safeTransfer(
+        IERC20 token,
+        address to,
+        uint256 value
+    ) internal {
+        callOptionalReturn(
+            token,
+            abi.encodeWithSelector(token.transfer.selector, to, value)
+        );
     }
 
-    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {
-        callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
+    function safeTransferFrom(
+        IERC20 token,
+        address from,
+        address to,
+        uint256 value
+    ) internal {
+        callOptionalReturn(
+            token,
+            abi.encodeWithSelector(token.transferFrom.selector, from, to, value)
+        );
     }
 
-    function safeApprove(IERC20 token, address spender, uint256 value) internal {
+    function safeApprove(
+        IERC20 token,
+        address spender,
+        uint256 value
+    ) internal {
         // safeApprove should only be called when setting an initial allowance,
         // or when resetting it to zero. To increase and decrease it, use
         // 'safeIncreaseAllowance' and 'safeDecreaseAllowance'
         // solhint-disable-next-line max-line-length
-        require((value == 0) || (token.allowance(address(this), spender) == 0),
+        require(
+            (value == 0) || (token.allowance(address(this), spender) == 0),
             "SafeERC20: approve from non-zero to non-zero allowance"
         );
-        callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
+        callOptionalReturn(
+            token,
+            abi.encodeWithSelector(token.approve.selector, spender, value)
+        );
     }
 
-    function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) internal {
-        uint256 newAllowance = token.allowance(address(this), spender).add(value);
-        callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
+    function safeIncreaseAllowance(
+        IERC20 token,
+        address spender,
+        uint256 value
+    ) internal {
+        uint256 newAllowance = token.allowance(address(this), spender).add(
+            value
+        );
+        callOptionalReturn(
+            token,
+            abi.encodeWithSelector(
+                token.approve.selector,
+                spender,
+                newAllowance
+            )
+        );
     }
 
-    function safeDecreaseAllowance(IERC20 token, address spender, uint256 value) internal {
-        uint256 newAllowance = token.allowance(address(this), spender).sub(value, "SafeERC20: decreased allowance below zero");
-        callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
+    function safeDecreaseAllowance(
+        IERC20 token,
+        address spender,
+        uint256 value
+    ) internal {
+        uint256 newAllowance = token.allowance(address(this), spender).sub(
+            value,
+            "SafeERC20: decreased allowance below zero"
+        );
+        callOptionalReturn(
+            token,
+            abi.encodeWithSelector(
+                token.approve.selector,
+                spender,
+                newAllowance
+            )
+        );
     }
 
     /**
@@ -619,9 +784,13 @@ library SafeERC20 {
         (bool success, bytes memory returndata) = address(token).call(data);
         require(success, "SafeERC20: low-level call failed");
 
-        if (returndata.length > 0) { // Return data is optional
+        if (returndata.length > 0) {
+            // Return data is optional
             // solhint-disable-next-line max-line-length
-            require(abi.decode(returndata, (bool)), "SafeERC20: ERC20 operation did not succeed");
+            require(
+                abi.decode(returndata, (bool)),
+                "SafeERC20: ERC20 operation did not succeed"
+            );
         }
     }
 }
@@ -636,7 +805,10 @@ contract IRewardDistributionRecipient is Ownable {
     function notifyRewardAmount(uint256 reward) external virtual {}
 
     modifier onlyRewardDistribution() {
-        require(_msgSender() == rewardDistribution, "Caller is not reward distribution");
+        require(
+            _msgSender() == rewardDistribution,
+            "Caller is not reward distribution"
+        );
         _;
     }
 
@@ -675,22 +847,30 @@ contract LPTokenWrapper {
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function withdraw(uint256 amount) public virtual{
+    function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         stakingToken.safeTransfer(msg.sender, amount);
-    } 
+    }
+
     function setBPT(address BPTAddress) internal {
         stakingToken = IERC20(BPTAddress);
     }
 }
 
 interface MultiplierInterface {
-  function getTotalMultiplier(address account) external view returns (uint256);
+    function getTotalMultiplier(address account)
+        external
+        view
+        returns (uint256);
 }
 
 interface CalculateCycle {
-  function calculate(uint256 deployedTime,uint256 currentTime,uint256 duration) external view returns(uint256);
+    function calculate(
+        uint256 deployedTime,
+        uint256 currentTime,
+        uint256 duration
+    ) external view returns (uint256);
 }
 
 contract TheDream is LPTokenWrapper, IRewardDistributionRecipient {
@@ -705,7 +885,7 @@ contract TheDream is LPTokenWrapper, IRewardDistributionRecipient {
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
     uint256 public deployedTime;
-    
+
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
 
@@ -714,7 +894,7 @@ contract TheDream is LPTokenWrapper, IRewardDistributionRecipient {
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
     event Boost(uint256 level);
-    
+
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
@@ -724,14 +904,20 @@ contract TheDream is LPTokenWrapper, IRewardDistributionRecipient {
         }
         _;
     }
-    
-    constructor(address _stakingToken,address _rewardToken,address _multiplierToken,address _calculateCycleAddr,address _multiplierAddr) public{
-      setBPT(_stakingToken);
-      rewardToken = IERC20(_rewardToken);
-      multiplierToken = IERC20(_multiplierToken);
-      calculateCycle = CalculateCycle(_calculateCycleAddr);
-      multiplier = MultiplierInterface(_multiplierAddr);
-      deployedTime = block.timestamp;
+
+    constructor(
+        address _stakingToken,
+        address _rewardToken,
+        address _multiplierToken,
+        address _calculateCycleAddr,
+        address _multiplierAddr
+    ) public {
+        setBPT(_stakingToken);
+        rewardToken = IERC20(_rewardToken);
+        multiplierToken = IERC20(_multiplierToken);
+        calculateCycle = CalculateCycle(_calculateCycleAddr);
+        multiplier = MultiplierInterface(_multiplierAddr);
+        deployedTime = block.timestamp;
     }
 
     function lastTimeRewardApplicable() public view returns (uint256) {
@@ -786,7 +972,10 @@ contract TheDream is LPTokenWrapper, IRewardDistributionRecipient {
             rewards[msg.sender] = 0;
             rewardToken.safeTransfer(msg.sender, reward.mul(97).div(100));
             // 3 percent goes back to the dev fund
-            rewardToken.safeTransfer(0xe5658b5dDbE0De05Ac7397b04A2ADeA69cd499aa, reward.mul(3).div(100));
+            rewardToken.safeTransfer(
+                0xe5658b5dDbE0De05Ac7397b04A2ADeA69cd499aa,
+                reward.mul(3).div(100)
+            );
             emit RewardPaid(msg.sender, reward);
         }
     }
@@ -808,11 +997,14 @@ contract TheDream is LPTokenWrapper, IRewardDistributionRecipient {
         periodFinish = block.timestamp.add(DURATION);
         emit RewardAdded(reward);
     }
-    
-    function setCycleContract(address _cycleContract) public onlyRewardDistribution {
+
+    function setCycleContract(address _cycleContract)
+        public
+        onlyRewardDistribution
+    {
         calculateCycle = CalculateCycle(_cycleContract);
     }
-    
+
     // naps stuff
     function getLevel(address account) external view returns (uint256) {
         return NAPSlevel[account];
@@ -821,55 +1013,75 @@ contract TheDream is LPTokenWrapper, IRewardDistributionRecipient {
     function getSpent(address account) external view returns (uint256) {
         return spentNAPS[account];
     }
-    
+
     // Returns the number of naps token to boost
-    function calculateCost(uint256 level) public view returns(uint256) {
-        uint256 cycles = calculateCycle.calculate(deployedTime,block.timestamp,napsDiscountRange);
+    function calculateCost(uint256 level) public view returns (uint256) {
+        uint256 cycles = calculateCycle.calculate(
+            deployedTime,
+            block.timestamp,
+            napsDiscountRange
+        );
         // Cap it to 5 times
-        if(cycles > 5) {
+        if (cycles > 5) {
             cycles = 5;
         }
         // // cost = initialCost * (0.9)^cycles = initial cost * (9^cycles)/(10^cycles)
         if (level == 1) {
-            return napsLevelOneCost.mul(9 ** cycles).div(10 ** cycles);
-        }else if(level == 2) {
-            return napsLevelTwoCost.mul(9 ** cycles).div(10 ** cycles);
-        }else if(level ==3) {
-            return napsLevelThreeCost.mul(9 ** cycles).div(10 ** cycles);
+            return napsLevelOneCost.mul(9**cycles).div(10**cycles);
+        } else if (level == 2) {
+            return napsLevelTwoCost.mul(9**cycles).div(10**cycles);
+        } else if (level == 3) {
+            return napsLevelThreeCost.mul(9**cycles).div(10**cycles);
         }
     }
-    
+
     function purchase(uint256 level) external {
-        require(NAPSlevel[msg.sender] <= level,"Cannot downgrade level or same level");
+        require(
+            NAPSlevel[msg.sender] <= level,
+            "Cannot downgrade level or same level"
+        );
         uint256 cost = calculateCost(level);
         uint256 finalCost = cost.sub(spentNAPS[msg.sender]);
         // Owner dev fund
-        rewardToken.safeTransferFrom(msg.sender,0xB8b485b42A456Df5201EAa86565614c40bA7fb4E,finalCost);
+        rewardToken.safeTransferFrom(
+            msg.sender,
+            0xB8b485b42A456Df5201EAa86565614c40bA7fb4E,
+            finalCost
+        );
         spentNAPS[msg.sender] = spentNAPS[msg.sender].add(finalCost);
         NAPSlevel[msg.sender] = level;
         emit Boost(level);
     }
 
-    function setMultiplierAddress(address multiplierAddress) external onlyRewardDistribution {
-      multiplier = MultiplierInterface(multiplierAddress);
+    function setMultiplierAddress(address multiplierAddress)
+        external
+        onlyRewardDistribution
+    {
+        multiplier = MultiplierInterface(multiplierAddress);
     }
 
     function getTotalMultiplier(address account) public view returns (uint256) {
         uint256 zzzMultiplier = multiplier.getTotalMultiplier(account);
         uint256 napsMultiplier = 0;
-        if(NAPSlevel[account] == 1) {
+        if (NAPSlevel[account] == 1) {
             napsMultiplier = TenPercentBonus;
-        }else if(NAPSlevel[account] == 2) {
+        } else if (NAPSlevel[account] == 2) {
             napsMultiplier = TwentyPercentBonus;
-        }else if(NAPSlevel[account] == 3) {
+        } else if (NAPSlevel[account] == 3) {
             napsMultiplier = FourtyPercentBonus;
         }
-        return zzzMultiplier.add(napsMultiplier).add(1*10**18);
+        return zzzMultiplier.add(napsMultiplier).add(1 * 10**18);
     }
 
     function eject() external onlyRewardDistribution {
-        require(block.timestamp > periodFinish,"Cannot eject before period finishes");
+        require(
+            block.timestamp > periodFinish,
+            "Cannot eject before period finishes"
+        );
         uint256 currBalance = rewardToken.balanceOf(address(this));
-        rewardToken.safeTransfer(0xe5658b5dDbE0De05Ac7397b04A2ADeA69cd499aa,currBalance);
+        rewardToken.safeTransfer(
+            0xe5658b5dDbE0De05Ac7397b04A2ADeA69cd499aa,
+            currBalance
+        );
     }
 }
