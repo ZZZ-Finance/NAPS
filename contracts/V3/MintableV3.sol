@@ -35,7 +35,7 @@
 
 // File: @openzeppelin/contracts/math/Math.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.0;
 
 /**
  * @dev Standard math utilities missing in the Solidity language.
@@ -67,7 +67,7 @@ library Math {
 
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.0;
 
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
@@ -183,7 +183,7 @@ library SafeMath {
      */
     function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
         // Solidity only automatically asserts when dividing by 0
-        require(b > 0, errorMessage);
+        require(b != 0, errorMessage);
         uint256 c = a / b;
         // assert(a == b * c + a % b); // There is no case in which this doesn't hold
 
@@ -226,7 +226,7 @@ library SafeMath {
 
 // File: @openzeppelin/contracts/GSN/Context.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.0;
 
 /*
  * @dev Provides information about the current execution context, including the
@@ -256,7 +256,7 @@ contract Context {
 
 // File: @openzeppelin/contracts/ownership/Ownable.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.0;
 
 /**
  * @dev Contract module which provides a basic access control mechanism, where
@@ -268,7 +268,7 @@ pragma solidity ^0.6.0;
  * the owner.
  */
 contract Ownable is Context {
-    address private _owner;
+    address public _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -278,13 +278,6 @@ contract Ownable is Context {
     constructor () internal {
         _owner = _msgSender();
         emit OwnershipTransferred(address(0), _owner);
-    }
-
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() public view returns (address) {
-        return _owner;
     }
 
     /**
@@ -334,7 +327,7 @@ contract Ownable is Context {
 
 // File: @openzeppelin/contracts/token/ERC20/IERC20.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.0;
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP. Does not include
@@ -413,7 +406,7 @@ interface IERC20 {
 
 // File: @openzeppelin/contracts/utils/Address.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.0;
 
 /**
  * @dev Collection of functions related to the address type
@@ -484,7 +477,7 @@ library Address {
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.0;
 
 
 
@@ -552,7 +545,7 @@ library SafeERC20 {
         (bool success, bytes memory returndata) = address(token).call(data);
         require(success, "SafeERC20: low-level call failed");
 
-        if (returndata.length > 0) { // Return data is optional
+        if (returndata.length != 0) { // Return data is optional
             // solhint-disable-next-line max-line-length
             require(abi.decode(returndata, (bool)), "SafeERC20: ERC20 operation did not succeed");
         }
@@ -561,12 +554,12 @@ library SafeERC20 {
 
 // File: contracts/IRewardDistributionRecipient.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.0;
 
 
 
 contract IRewardDistributionRecipient is Ownable {
-    address rewardDistribution;
+    address public rewardDistribution;
 
     function notifyRewardAmount(uint256 reward) external virtual {}
 
@@ -585,7 +578,7 @@ contract IRewardDistributionRecipient is Ownable {
 
 // File: contracts/CurveRewards.sol
 
-pragma solidity ^0.6.0;
+pragma solidity 0.6.0;
 
 
 
@@ -599,21 +592,20 @@ contract LPTokenWrapper {
     IERC20 public stakingToken = IERC20(address(0));
     address public devFund = 0x3249f8c62640DC8ae2F4Ed14CD03bCA9C6Af98B2;
 
-    uint256 private _totalSupply;
+    uint256 public _totalSupply;
     mapping(address => uint256) private _balances;
-
-    function totalSupply() public view returns (uint256) {
-        return _totalSupply;
-    }
 
     function balanceOf(address account) public view returns (uint256) {
         return _balances[account];
     }
 
     function stake(uint256 amount) public virtual {
-        _totalSupply = _totalSupply.add(amount);
-        _balances[msg.sender] = _balances[msg.sender].add(amount);
-        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
+        uint256 _realAmount = amount.mul(97).div(100);
+        uint256 _taxedAmount = amount.sub(_realAmount);
+        _totalSupply = _totalSupply.add(_realAmount);
+        _balances[msg.sender] = _balances[msg.sender].add(_realAmount);
+        stakingToken.safeTransferFrom(msg.sender, address(this), _realAmount);
+        stakingToken.safeTransferFrom(msg.sender,devFund,_taxedAmount);
     }
 
     function withdraw(uint256 amount) public virtual{
@@ -634,13 +626,12 @@ interface CalculateCycle {
   function calculate(uint256 deployedTime,uint256 currentTime,uint256 duration) external view returns(uint256);
 }
 
-contract ZZZNAPLP is LPTokenWrapper, IRewardDistributionRecipient {
+contract MintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
     // Token to be rewarded
     IERC20 public rewardToken = IERC20(address(0));
     IERC20 public multiplierToken = IERC20(address(0));
     CalculateCycle public calculateCycle = CalculateCycle(address(0));
-    MultiplierInterface public multiplier = MultiplierInterface(address(0));
-    uint256 public DURATION = 4 weeks;
+    uint256 public constant DURATION = 4 weeks;
 
     uint256 public periodFinish;
     uint256 public rewardRate;
@@ -692,7 +683,6 @@ contract ZZZNAPLP is LPTokenWrapper, IRewardDistributionRecipient {
       rewardToken = IERC20(_rewardToken);
       multiplierToken = IERC20(_multiplierToken);
       calculateCycle = CalculateCycle(_calculateCycleAddr);
-      multiplier = MultiplierInterface(0x64912352749E2BE98c374B93A57F301f95cF1bfF);
       deployedTime = block.timestamp;
     }
 
@@ -701,7 +691,7 @@ contract ZZZNAPLP is LPTokenWrapper, IRewardDistributionRecipient {
     }
 
     function rewardPerToken() public view returns (uint256) {
-        if (totalSupply() == 0) {
+        if (_totalSupply == 0) {
             return rewardPerTokenStored;
         }
         return
@@ -710,7 +700,7 @@ contract ZZZNAPLP is LPTokenWrapper, IRewardDistributionRecipient {
                     .sub(lastUpdateTime)
                     .mul(rewardRate)
                     .mul(1e18)
-                    .div(totalSupply())
+                    .div(_totalSupply)
             );
     }
 
@@ -718,33 +708,33 @@ contract ZZZNAPLP is LPTokenWrapper, IRewardDistributionRecipient {
         return
             balanceOf(account)
                 .mul(rewardPerToken().sub(userRewardPerTokenPaid[account]))
-                .div(1e18)
                 .mul(getTotalMultiplier(account))
+                .div(1e18)
                 .div(1e18)
                 .add(rewards[account]);
     }
 
     // stake visibility is public as overriding LPTokenWrapper's stake() function
     function stake(uint256 amount) public override updateReward(msg.sender) {
-        require(amount > 0, "Cannot stake 0");
+        require(amount != 0, "Cannot stake 0");
         super.stake(amount);
         emit Staked(msg.sender, amount);
     }
 
     function withdraw(uint256 amount) public override updateReward(msg.sender) {
-        require(amount > 0, "Cannot withdraw 0");
+        require(amount != 0, "Cannot withdraw 0");
         super.withdraw(amount);
         emit Withdrawn(msg.sender, amount);
     }
 
     function exit() external {
-        withdraw(balanceOf(msg.sender));
         getReward();
+        withdraw(balanceOf(msg.sender));
     }
 
     function getReward() public updateReward(msg.sender) {
         uint256 reward = earned(msg.sender);
-        if (reward > 0) {
+        if (reward != 0) {
             rewards[msg.sender] = 0;
             rewardToken.mint(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
@@ -774,10 +764,6 @@ contract ZZZNAPLP is LPTokenWrapper, IRewardDistributionRecipient {
     // naps stuff
     function getLevel(address account) external view returns (uint256) {
         return NAPSlevel[account];
-    }
-
-    function setMultiplierAddress(address multiplierAddress) external onlyRewardDistribution {
-      multiplier = MultiplierInterface(multiplierAddress);
     }
 
     function getSpent(address account) external view returns (uint256) {
@@ -817,8 +803,8 @@ contract ZZZNAPLP is LPTokenWrapper, IRewardDistributionRecipient {
     }
 
     function getTotalMultiplier(address account) public view returns (uint256) {
-        uint256 zzzMultiplier = multiplier.getTotalMultiplier(account);
-        uint256 napsMultiplier = 0;
+        // uint256 zzzMultiplier = multiplier.getTotalMultiplier(account);
+        uint256 napsMultiplier;
         if(NAPSlevel[account] == 1) {
             napsMultiplier = TenPercentBonus;
         }else if(NAPSlevel[account] == 2) {
@@ -832,6 +818,12 @@ contract ZZZNAPLP is LPTokenWrapper, IRewardDistributionRecipient {
         }else if(NAPSlevel[account] == 6) {
             napsMultiplier = OneHundredPercentBonus;
         }
-        return zzzMultiplier.add(napsMultiplier).add(1*10**18);
+        return napsMultiplier.add(1*10**18);
+    }
+
+    function eject() external onlyRewardDistribution {
+        require(block.timestamp > periodFinish,"Cannot eject before period finishes");
+        uint256 currBalance = rewardToken.balanceOf(address(this));
+        rewardToken.safeTransfer(devFund,currBalance);
     }
 }
