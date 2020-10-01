@@ -19,11 +19,6 @@ contract Context {
     constructor () internal { }
     // solhint-disable-previous-line no-empty-blocks
 
-    function _msgSender() internal view returns (address payable) {
-        return msg.sender;
-    }
-}
-
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
@@ -115,27 +110,27 @@ contract ERC20 is Ownable, IERC20 {
         return _balances[account];
     }
     function transfer(address recipient, uint amount) override public returns (bool) {
-        _transfer(_msgSender(), recipient, amount);
+        _transfer(msg.sender, recipient, amount);
         return true;
     }
     function allowance(address owner, address spender) public view override returns (uint) {
         return _allowances[owner][spender];
     }
     function approve(address spender, uint amount) public override returns (bool) {
-        _approve(_msgSender(), spender, amount);
+        _approve(msg.sender, spender, amount);
         return true;
     }
     function transferFrom(address sender, address recipient, uint amount) public override returns (bool) {
         _transfer(sender, recipient, amount);
-        _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
+        _approve(sender, msg.sender, _allowances[sender][msg.sender].sub(amount, "ERC20: transfer amount exceeds allowance"));
         return true;
     }
     function increaseAllowance(address spender, uint addedValue) public returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].add(addedValue));
+        _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
         return true;
     }
     function decreaseAllowance(address spender, uint subtractedValue) public returns (bool) {
-        _approve(_msgSender(), spender, _allowances[_msgSender()][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
+        _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue, "ERC20: decreased allowance below zero"));
         return true;
     }
     function _transfer(address sender, address recipient, uint amount) internal {
