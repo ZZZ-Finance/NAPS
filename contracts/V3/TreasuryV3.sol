@@ -5,7 +5,6 @@
 pragma solidity 0.6.0;
 
 interface IERC20 {
-    function totalSupply() external view returns (uint);
     function balanceOf(address account) external view returns (uint);
     function transfer(address recipient, uint amount) external returns (bool);
     function allowance(address owner, address spender) external view returns (uint);
@@ -103,9 +102,6 @@ contract ERC20 is Ownable, IERC20 {
         _owner = address(0);
     }    
 
-    function totalSupply() public view override returns (uint) {
-        return _totalSupply;
-    }
     function balanceOf(address account) public view override returns (uint) {
         return _balances[account];
     }
