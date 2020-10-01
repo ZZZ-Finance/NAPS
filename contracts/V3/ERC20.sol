@@ -87,10 +87,6 @@ abstract contract ERC20 is Ownable, IERC20 {
       _owner = owner;
     }
 
-    function burnOwner() public{
-        _owner = address(0);
-    }    
-
     function balanceOf(address account) override public view returns (uint) {
         return _balances[account];
     }
