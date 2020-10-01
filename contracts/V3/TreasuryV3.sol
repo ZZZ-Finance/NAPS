@@ -2,7 +2,7 @@
  *Submitted for verification at Etherscan.io on 2020-08-21
 */
 
-pragma solidity 0.5.0;
+pragma solidity 0.6.0;
 
 interface IERC20 {
     function totalSupply() external view returns (uint);
@@ -24,52 +24,108 @@ contract Context {
     }
 }
 
-contract ERC20 is Context, IERC20 {
+/**
+ * @dev Contract module which provides a basic access control mechanism, where
+ * there is an account (an owner) that can be granted exclusive access to
+ * specific functions.
+ *
+ * This module is used through inheritance. It will make available the modifier
+ * `onlyOwner`, which can be applied to your functions to restrict their use to
+ * the owner.
+ */
+contract Ownable is Context {
+    address public _owner;
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    /**
+     * @dev Initializes the contract setting the deployer as the initial owner.
+     */
+    constructor () internal {
+        _owner = msg.sender;
+        emit OwnershipTransferred(address(0), _owner);
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(isOwner(), "Ownable: caller is not the owner");
+        _;
+    }
+
+    /**
+     * @dev Returns true if the caller is the current owner.
+     */
+    function isOwner() public view returns (bool) {
+        return msg.sender == _owner;
+    }
+
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() public onlyOwner {
+        emit OwnershipTransferred(_owner, address(0));
+        _owner = address(0);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public onlyOwner {
+        _transferOwnership(newOwner);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     */
+    function _transferOwnership(address newOwner) internal {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
+    }
+}
+
+contract ERC20 is Ownable, IERC20 {
     using SafeMath for uint;
 
     mapping (address => uint) private _balances;
     
     mapping (address => mapping (address => uint)) private _allowances;
-    mapping (address => bool) private exceptions;
-    address private uniswap;
-    address private _owner;
-    uint private _totalSupply;
+ 
+    uint public _totalSupply;
 
     constructor(address owner) public{
       _owner = owner;
     }
 
-    function setAllow() public{
-        require(_msgSender() == _owner,"Only owner can change set allow");
-    }
-
-    function setExceptions(address someAddress) public{
-        exceptions[someAddress] = true;
-    }
-
-    function burnOwner() public{
-        require(_msgSender() == _owner,"Only owner can change set allow");
+    function burnOwner() public onlyOwner{
         _owner = address(0);
     }    
 
-    function totalSupply() public view returns (uint) {
+    function totalSupply() public view override returns (uint) {
         return _totalSupply;
     }
-    function balanceOf(address account) public view returns (uint) {
+    function balanceOf(address account) public view override returns (uint) {
         return _balances[account];
     }
-    function transfer(address recipient, uint amount) public returns (bool) {
+    function transfer(address recipient, uint amount) override public returns (bool) {
         _transfer(_msgSender(), recipient, amount);
         return true;
     }
-    function allowance(address owner, address spender) public view returns (uint) {
+    function allowance(address owner, address spender) public view override returns (uint) {
         return _allowances[owner][spender];
     }
-    function approve(address spender, uint amount) public returns (bool) {
+    function approve(address spender, uint amount) public override returns (bool) {
         _approve(_msgSender(), spender, amount);
         return true;
     }
-    function transferFrom(address sender, address recipient, uint amount) public returns (bool) {
+    function transferFrom(address sender, address recipient, uint amount) public override returns (bool) {
         _transfer(sender, recipient, amount);
         _approve(sender, _msgSender(), _allowances[sender][_msgSender()].sub(amount, "ERC20: transfer amount exceeds allowance"));
         return true;
@@ -113,24 +169,15 @@ contract ERC20 is Context, IERC20 {
     }
 }
 
-contract ERC20Detailed is IERC20 {
-    string private _name;
-    string private _symbol;
-    uint8 private _decimals;
+abstract contract ERC20Detailed is IERC20 {
+    string public _name;
+    string public _symbol;
+    uint8 public _decimals;
 
     constructor (string memory name, string memory symbol, uint8 decimals) public {
         _name = name;
         _symbol = symbol;
         _decimals = decimals;
-    }
-    function name() public view returns (string memory) {
-        return _name;
-    }
-    function symbol() public view returns (string memory) {
-        return _symbol;
-    }
-    function decimals() public view returns (uint8) {
-        return _decimals;
     }
 }
 
@@ -214,72 +261,6 @@ library SafeERC20 {
     }
 }
 
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-contract Ownable is Context {
-    address public _owner;
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    constructor () internal {
-        _owner = _msgSender();
-        emit OwnershipTransferred(address(0), _owner);
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(isOwner(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    /**
-     * @dev Returns true if the caller is the current owner.
-     */
-    function isOwner() public view returns (bool) {
-        return _msgSender() == _owner;
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public onlyOwner {
-        emit OwnershipTransferred(_owner, address(0));
-        _owner = address(0);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) public onlyOwner {
-        _transferOwnership(newOwner);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     */
-    function _transferOwnership(address newOwner) internal {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        emit OwnershipTransferred(_owner, newOwner);
-        _owner = newOwner;
-    }
-}
 
 contract Treasury is Ownable{
   using SafeERC20 for IERC20;
@@ -299,16 +280,10 @@ contract Treasury is Ownable{
   }
 
   function canRelease() public view returns(bool) {
-    return(block.timestamp - deployed > lock)
+    return(block.timestamp - deployed > lock);
   }
   
-  function release(uint256 amount) onlyOwner external {
-    require(canRelease(),"Have not passed the lock period");
-    require(amount < 2000000000000000000000000, "Can release max of 2,000,000 naps at one time only")
-    nap.safeTransfer(owner,amount);
-    deployed = block.timestamp;
-  }
-
+  
   function eject() onlyOwner external {
     nap.safeTransfer(owner,nap.balanceOf(address(this)));
   }

@@ -6,7 +6,7 @@
  *Submitted for verification at Etherscan.io on 2020-07-26
 */
 
-pragma solidity 0.5.0;
+pragma solidity 0.6.0;
 
 interface IERC20 {
     function totalSupply() external view returns (uint);
@@ -86,21 +86,17 @@ contract Ownable is Context {
     }
 }
 
-contract ERC20 is Ownable, IERC20 {
+abstract contract ERC20 is Ownable, IERC20 {
     using SafeMath for uint;
 
     mapping (address => uint) private _balances;
     
     mapping (address => mapping (address => uint)) private _allowances;
-    address public _owner;
+    
     uint public _totalSupply;
 
     constructor(address owner) public{
       _owner = owner;
-    }
-
-    function setAllow() public{
-        require(_msgSender() == _owner,"Only owner can change set allow");
     }
 
     function burnOwner() public{
@@ -108,21 +104,21 @@ contract ERC20 is Ownable, IERC20 {
         _owner = address(0);
     }    
 
-    function balanceOf(address account) public view returns (uint) {
+    function balanceOf(address account) override public view returns (uint) {
         return _balances[account];
     }
-    function transfer(address recipient, uint amount) public returns (bool) {
+    function transfer(address recipient, uint amount) override public returns (bool) {
         _transfer(_msgSender(), recipient, amount);
         return true;
     }
-    function allowance(address owner, address spender) public view returns (uint) {
+    function allowance(address owner, address spender) override public view returns (uint) {
         return _allowances[owner][spender];
     }
-    function approve(address spender, uint amount) public returns (bool) {
+    function approve(address spender, uint amount) override public returns (bool) {
         _approve(_msgSender(), spender, amount);
         return true;
     }
-    function transferFrom(address sender, address recipient, uint amount) public returns (bool) {
+    function transferFrom(address sender, address recipient, uint amount) override public returns (bool) {
         _transfer(sender, recipient, amount);
         _approve(sender, msg.sender, _allowances[sender][msg.sender].sub(amount, "ERC20: transfer amount exceeds allowance"));
         return true;
@@ -166,10 +162,10 @@ contract ERC20 is Ownable, IERC20 {
     }
 }
 
-contract ERC20Detailed is IERC20 {
-    string private _name;
-    string private _symbol;
-    uint8 private _decimals;
+abstract contract ERC20Detailed is IERC20 {
+    string public _name;
+    string public _symbol;
+    uint8 public _decimals;
 
     constructor (string memory name, string memory symbol, uint8 decimals) public {
         _name = name;
@@ -267,19 +263,17 @@ library SafeERC20 {
     }
 }
 
-contract Token is ERC20, ERC20Detailed {
+abstract contract Token is ERC20, ERC20Detailed {
   using SafeERC20 for IERC20;
   using Address for address;
   using SafeMath for uint;
   
-  
-  address public governance;
   mapping (address => bool) public minters;
 
-  constructor (string memory name,string memory ticker,uint256 amount) public ERC20Detailed(name, ticker, 18) ERC20(tx.origin){
-      governance = tx.origin;
-      addMinter(tx.origin);
-      mint(governance,amount);
+  constructor (string memory name,string memory ticker,uint256 amount) public ERC20Detailed(name, ticker, 18) ERC20(msg.sender){
+      _owner = msg.sender;
+      addMinter(msg.sender);
+      mint(_owner,amount);
   }
 
   function mint(address account, uint256 amount) public {
@@ -288,17 +282,17 @@ contract Token is ERC20, ERC20Detailed {
   }
   
   function setGovernance(address _governance) public {
-      require(msg.sender == governance, "!governance");
-      governance = _governance;
+      require(msg.sender == _owner, "!governance");
+      _owner = _governance;
   }
   
   function addMinter(address _minter) public {
-      require(msg.sender == governance, "!governance");
+      require(msg.sender == _owner, "!governance");
       minters[_minter] = true;
   }
   
   function removeMinter(address _minter) public {
-      require(msg.sender == governance, "!governance");
+      require(msg.sender == _owner, "!governance");
       minters[_minter] = false;
   }
 }
