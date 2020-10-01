@@ -88,7 +88,6 @@ abstract contract ERC20 is Ownable, IERC20 {
     }
 
     function burnOwner() public{
-        require(msg.sender == _owner,"Only the owner can burn his owner status");
         _owner = address(0);
     }    
 
@@ -260,18 +259,12 @@ abstract contract Token is ERC20, ERC20Detailed {
       _mint(account, amount);
   }
   
-  function setGovernance(address _governance) public {
-      require(msg.sender == _owner, "!governance");
-      _owner = _governance;
-  }
-  
-  function addMinter(address _minter) public {
-      require(msg.sender == _owner, "!governance");
+ 
+  function addMinter(address _minter) public onlyOwner {
       minters[_minter] = true;
   }
   
-  function removeMinter(address _minter) public {
-      require(msg.sender == _owner, "!governance");
+  function removeMinter(address _minter) public onlyOwner {
       minters[_minter] = false;
   }
 }
