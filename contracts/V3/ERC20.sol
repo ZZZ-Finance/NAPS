@@ -172,15 +172,6 @@ abstract contract ERC20Detailed is IERC20 {
         _symbol = symbol;
         _decimals = decimals;
     }
-    function name() public view returns (string memory) {
-        return _name;
-    }
-    function symbol() public view returns (string memory) {
-        return _symbol;
-    }
-    function decimals() public view returns (uint8) {
-        return _decimals;
-    }
 }
 
 library SafeMath {
