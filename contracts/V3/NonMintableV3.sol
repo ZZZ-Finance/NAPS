@@ -1,7 +1,3 @@
-/**
- *Submitted for verification at Etherscan.io on 2020-08-29
-*/
-
 /*
    ____            __   __        __   _
   / __/__ __ ___  / /_ / /  ___  / /_ (_)__ __
@@ -280,7 +276,7 @@ contract Ownable is Context {
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
     constructor () internal {
-        _owner = _msgSender();
+        _owner = msg.sender;
         emit OwnershipTransferred(address(0), _owner);
     }
 
@@ -296,7 +292,7 @@ contract Ownable is Context {
      * @dev Returns true if the caller is the current owner.
      */
     function isOwner() public view returns (bool) {
-        return _msgSender() == _owner;
+        return msg.sender == _owner;
     }
 
     /**
@@ -568,7 +564,7 @@ contract IRewardDistributionRecipient is Ownable {
     function notifyRewardAmount(uint256 reward) external virtual {}
 
     modifier onlyRewardDistribution() {
-        require(_msgSender() == rewardDistribution, "Caller is not reward distribution");
+        require(msg.sender == rewardDistribution, "Caller is not reward distribution");
         _;
     }
 

@@ -27,8 +27,7 @@ contract Multiplier {
   }
   
   // Set the pool and zzz address if there are any errors.
-  function configure(address[] calldata poolAddresses,address zzzAddress) external {
-    require(msg.sender == owner,"Only the owner can call this function");
+  function configure(address[] calldata poolAddresses,address zzzAddress) external onlyOwner {
     pools = poolAddresses;
     ZZZ = IERC20(zzzAddress);
   }

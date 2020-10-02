@@ -1,15 +1,6 @@
-/**
- *Submitted for verification at Etherscan.io on 2020-08-11
-*/
-
-/**
- *Submitted for verification at Etherscan.io on 2020-07-26
-*/
-
 pragma solidity 0.6.0;
 
 interface IERC20 {
-    function _totalSupply() external view returns (uint);
     function balanceOf(address account) external view returns (uint);
     function transfer(address recipient, uint amount) external returns (bool);
     function allowance(address owner, address spender) external view returns (uint);
@@ -23,9 +14,6 @@ contract Context {
     constructor () internal { }
     // solhint-disable-previous-line no-empty-blocks
 
-    function _msgSender() internal view returns (address payable) {
-        return msg.sender;
-    }
 }
 
 contract Ownable is Context {
@@ -37,7 +25,7 @@ contract Ownable is Context {
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
     constructor () internal {
-        _owner = _msgSender();
+        _owner = msg.sender;
         emit OwnershipTransferred(address(0), _owner);
     }
 
@@ -53,7 +41,7 @@ contract Ownable is Context {
      * @dev Returns true if the caller is the current owner.
      */
     function isOwner() public view returns (bool) {
-        return _msgSender() == _owner;
+        return msg.sender == _owner;
     }
 
     /**
@@ -99,23 +87,18 @@ abstract contract ERC20 is Ownable, IERC20 {
       _owner = owner;
     }
 
-    function burnOwner() public{
-        require(_msgSender() == _owner,"Only the owner can burn his owner status");
-        _owner = address(0);
-    }    
-
     function balanceOf(address account) override public view returns (uint) {
         return _balances[account];
     }
     function transfer(address recipient, uint amount) override public returns (bool) {
-        _transfer(_msgSender(), recipient, amount);
+        _transfer(msg.sender, recipient, amount);
         return true;
     }
     function allowance(address owner, address spender) override public view returns (uint) {
         return _allowances[owner][spender];
     }
     function approve(address spender, uint amount) override public returns (bool) {
-        _approve(_msgSender(), spender, amount);
+        _approve(msg.sender, spender, amount);
         return true;
     }
     function transferFrom(address sender, address recipient, uint amount) override public returns (bool) {
@@ -272,18 +255,12 @@ abstract contract Token is ERC20, ERC20Detailed {
       _mint(account, amount);
   }
   
-  function setGovernance(address _governance) public {
-      require(msg.sender == _owner, "!governance");
-      _owner = _governance;
-  }
-  
-  function addMinter(address _minter) public {
-      require(msg.sender == _owner, "!governance");
+ 
+  function addMinter(address _minter) public onlyOwner {
       minters[_minter] = true;
   }
   
-  function removeMinter(address _minter) public {
-      require(msg.sender == _owner, "!governance");
+  function removeMinter(address _minter) public onlyOwner {
       minters[_minter] = false;
   }
 }
