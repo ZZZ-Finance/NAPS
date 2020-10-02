@@ -6,7 +6,7 @@ interface Pool {
   function balanceOf(address account) external view returns (uint256);
 }
 
-contract Multiplier {
+contract Multiplier is Ownable {
   // List of all pools that involve ZZZ staked
   using SafeMath for uint;
   using SafeERC20 for IERC20;
