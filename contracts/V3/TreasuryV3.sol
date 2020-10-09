@@ -10,10 +10,6 @@ interface IERC20 {
     event Approval(address indexed owner, address indexed spender, uint value);
 }
 
-contract Context {
-    constructor () internal { }
-    // solhint-disable-previous-line no-empty-blocks
-}
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
@@ -23,7 +19,7 @@ contract Context {
  * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
-contract Ownable is Context {
+contract Ownable  {
     address public _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
