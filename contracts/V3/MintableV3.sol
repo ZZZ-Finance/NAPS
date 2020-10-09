@@ -776,7 +776,7 @@ contract MintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
         if(cycles > 5) {
             cycles = 5;
         }
-        // // cost = initialCost * (0.9)^cycles = initial cost * (9^cycles)/(10^cycles)
+        // cost = level cost * (9^cycles) / (10^cycles)
         if (level == 1) {
             return napsLevelOneCost.mul(9 ** cycles).div(10 ** cycles);
         }else if(level == 2) {
@@ -792,7 +792,7 @@ contract MintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
         }
     }
     function purchase(uint256 level) external {
-        require(NAPSlevel[msg.sender] <= level,"Cannot downgrade level or same level");
+        require(NAPSlevel[msg.sender] < level,"Cannot downgrade level or same level");
         uint256 cost = calculateCost(level);
         uint256 finalCost = cost.sub(spentNAPS[msg.sender]);
         // Owner dev fund
