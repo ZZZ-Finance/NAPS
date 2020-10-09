@@ -252,12 +252,11 @@ library SafeERC20 {
 contract Treasury is Ownable{
   using SafeERC20 for IERC20;
   IERC20 public nap = IERC20(address(0));
-  address public owner;
   uint256 public deployed;
   uint256 public constant lock = 3 days;
   
   constructor(address napAddress) public {
-    owner = msg.sender;
+    
     nap = IERC20(napAddress);
     deployed = block.timestamp;
   }
@@ -272,10 +271,7 @@ contract Treasury is Ownable{
   
   
   function eject() onlyOwner external {
-    nap.safeTransfer(owner,nap.balanceOf(address(this)));
+    nap.safeTransfer(_owner,nap.balanceOf(address(this)));
   }
 
-  function burnOwner() onlyOwner external {
-    owner = address(0);
-  }
 }
