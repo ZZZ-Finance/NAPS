@@ -10,13 +10,7 @@ interface IERC20 {
     event Approval(address indexed owner, address indexed spender, uint value);
 }
 
-contract Context {
-    constructor () internal { }
-    // solhint-disable-previous-line no-empty-blocks
-
-}
-
-contract Ownable is Context {
+contract Ownable {
     address public _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -245,7 +239,7 @@ abstract contract Token is ERC20, ERC20Detailed {
   mapping (address => bool) public minters;
 
   constructor (string memory name,string memory ticker,uint256 amount) public ERC20Detailed(name, ticker, 18) ERC20(msg.sender){
-      _owner = msg.sender;
+      
       addMinter(msg.sender);
       mint(_owner,amount);
   }
