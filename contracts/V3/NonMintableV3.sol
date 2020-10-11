@@ -637,13 +637,18 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
     uint256 public rewardPerTokenStored;
     uint256 public deployedTime;
     uint256 public constant napsDiscountRange = 8 hours;
-    uint256 public constant napsLevelOneCost = 10000000000000000000000;
-    uint256 public constant napsLevelTwoCost = 20000000000000000000000;
-    uint256 public constant napsLevelThreeCost = 30000000000000000000000;
+    uint256 public constant napsLevelOneCost = 1600000000000000000000;
+    uint256 public constant napsLevelTwoCost = 3200000000000000000000;
+    uint256 public constant napsLevelThreeCost = 5000000000000000000000;
+    uint256 public constant napsLevelFourCost = 128000000000000000000000;
+    uint256 public constant napsLevelFiveCost = 168000000000000000000000;
+    uint256 public constant napsLevelSixCost = 250000000000000000000000;
+    uint256 public constant FivePercentBonus = 5 ** 17;
     uint256 public constant TenPercentBonus = 1 * 10 ** 17;
-    uint256 public constant TwentyPercentBonus = 2 * 10 ** 17;
+    uint256 public constant FifteenPercentBonus = 15 ** 17;
     uint256 public constant ThirtyPercentBonus = 3 * 10 ** 17;
     uint256 public constant FourtyPercentBonus = 4 * 10 ** 17;
+    uint256 public constant SixtyPercentBonus = 6 * 10 ** 17;
     
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
@@ -772,6 +777,12 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
             return napsLevelTwoCost.mul(9 ** cycles).div(10 ** cycles);
         }else if(level ==3) {
             return napsLevelThreeCost.mul(9 ** cycles).div(10 ** cycles);
+        }else if(level ==4) {
+            return napsLevelFourCost.mul(9 ** cycles).div(10 ** cycles);
+        }else if(level ==5) {
+            return napsLevelFiveCost.mul(9 ** cycles).div(10 ** cycles);
+        }else if(level ==6) {
+            return napsLevelSixCost.mul(9 ** cycles).div(10 ** cycles);
         }
     }
     
@@ -794,11 +805,17 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
         uint256 zzzMultiplier = multiplier.getTotalMultiplier(account);
         uint256 napsMultiplier;
         if(NAPSlevel[account] == 1) {
-            napsMultiplier = TenPercentBonus;
+            napsMultiplier = FivePercentBonus;
         }else if(NAPSlevel[account] == 2) {
-            napsMultiplier = TwentyPercentBonus;
+            napsMultiplier = TenPercentBonus;
         }else if(NAPSlevel[account] == 3) {
+            napsMultiplier = FifteenPercentBonus;
+        }else if(NAPSlevel[account] == 4) {
+            napsMultiplier = ThirtyPercentBonus;
+        }else if(NAPSlevel[account] == 5) {
             napsMultiplier = FourtyPercentBonus;
+        }else if(NAPSlevel[account] == 6) {
+            napsMultiplier = SixtyPercentBonus;
         }
         return zzzMultiplier.add(napsMultiplier).add(1*10**18);
     }
