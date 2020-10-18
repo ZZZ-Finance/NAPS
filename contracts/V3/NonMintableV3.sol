@@ -637,13 +637,12 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
     uint256 public rewardPerTokenStored;
     uint256 public deployedTime;
     uint256 public constant napsDiscountRange = 8 hours;
-    uint256 public constant napsLevelOneCost = 10000000000000000000000;
-    uint256 public constant napsLevelTwoCost = 20000000000000000000000;
-    uint256 public constant napsLevelThreeCost = 30000000000000000000000;
-    uint256 public constant TenPercentBonus = 1 * 10 ** 17;
-    uint256 public constant TwentyPercentBonus = 2 * 10 ** 17;
-    uint256 public constant ThirtyPercentBonus = 3 * 10 ** 17;
-    uint256 public constant FourtyPercentBonus = 4 * 10 ** 17;
+    uint256 public napsLevelOneCost;
+    uint256 public napsLevelTwoCost;
+    uint256 public napsLevelThreeCost;
+    uint256 public napsLevelOneBonus;
+    uint256 public napsLevelTwoBonus;
+    uint256 public napsLevelThreeBonus;
     
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
@@ -664,7 +663,7 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
         }
         _;
     }
-    constructor(address _stakingToken,address _rewardToken,address _multiplierToken,address _calculateCycleAddr,address _multiplierAddr) public{
+    constructor(address _stakingToken,address _rewardToken,address _multiplierToken,address _calculateCycleAddr,address _multiplierAddr,uint napsLevelOneCost,uint napsLevelTwoCost,uint napsLevelThreeCost,uint napsLevelOneBonus,uint napsLevelTwoBonus,uint napsLevelThreeBonus) public{
       setBPT(_stakingToken);
       rewardToken = IERC20(_rewardToken);
       multiplierToken = IERC20(_multiplierToken);
@@ -794,11 +793,11 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
         uint256 zzzMultiplier = multiplier.getTotalMultiplier(account);
         uint256 napsMultiplier;
         if(NAPSlevel[account] == 1) {
-            napsMultiplier = TenPercentBonus;
+            napsMultiplier = napsLevelOneBonus;
         }else if(NAPSlevel[account] == 2) {
-            napsMultiplier = TwentyPercentBonus;
+            napsMultiplier = napsLevelTwoBonus;
         }else if(NAPSlevel[account] == 3) {
-            napsMultiplier = FourtyPercentBonus;
+            napsMultiplier = napsLevelThreeBonus;
         }
         return zzzMultiplier.add(napsMultiplier).add(1*10**18);
     }
@@ -807,5 +806,14 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
         require(block.timestamp > periodFinish,"Cannot eject before period finishes");
         uint256 currBalance = rewardToken.balanceOf(address(this));
         rewardToken.safeTransfer(devFund,currBalance);
+    }
+    
+    function changeNAPSlevels(uint newLevelOneCost,uint newLevelTwoCost,uint newLevelThreeCost,uint newLevelOneBonus,uint newLevelTwoBonus,uint newLevelThreeBonus) public onlyRewardDistribution {
+         napsLevelOneCost = newLevelOneCost;
+         napsLevelTwoCost = newLevelTwoCost;
+         napsLevelThreeCost = newLevelThreeCost;
+         napsLevelOneBonus = newLevelOneBonus;
+         napsLevelTwoBonus = newLevelTwoBonus;
+         napsLevelThreeBonus = newLevelThreeBonus;
     }
 }
