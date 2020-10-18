@@ -61,7 +61,7 @@ library Math {
      */
     function average(uint256 a, uint256 b) internal pure returns (uint256) {
         // (a + b) / 2 can overflow, so we distribute
-        return (a / 2) + (b / 2) + ((a % 2 + b % 2) / 2);
+        return (a / 2) + (b / 2) + (((a % 2) + (b % 2)) / 2);
     }
 }
 
@@ -123,7 +123,11 @@ library SafeMath {
      *
      * _Available since v2.4.0._
      */
-    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b <= a, errorMessage);
         uint256 c = a - b;
 
@@ -181,7 +185,11 @@ library SafeMath {
      *
      * _Available since v2.4.0._
      */
-    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         // Solidity only automatically asserts when dividing by 0
         require(b != 0, errorMessage);
         uint256 c = a / b;
@@ -218,7 +226,11 @@ library SafeMath {
      *
      * _Available since v2.4.0._
      */
-    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b != 0, errorMessage);
         return a % b;
     }
@@ -241,7 +253,8 @@ pragma solidity 0.6.0;
 contract Context {
     // Empty internal constructor, to prevent people from mistakenly deploying
     // an instance of this contract, which should be used via inheritance.
-    constructor () internal { }
+    constructor() internal {}
+
     // solhint-disable-previous-line no-empty-blocks
 
     function _msgSender() internal view returns (address payable) {
@@ -270,12 +283,15 @@ pragma solidity 0.6.0;
 contract Ownable is Context {
     address public _owner;
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    constructor () internal {
+    constructor() internal {
         _owner = msg.sender;
         emit OwnershipTransferred(address(0), _owner);
     }
@@ -319,7 +335,10 @@ contract Ownable is Context {
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      */
     function _transferOwnership(address newOwner) internal {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }
@@ -351,7 +370,9 @@ interface IERC20 {
      *
      * Emits a {Transfer} event.
      */
-    function transfer(address recipient, uint256 amount) external returns (bool);
+    function transfer(address recipient, uint256 amount)
+        external
+        returns (bool);
 
     /**
      * @dev Returns the remaining number of tokens that `spender` will be
@@ -360,7 +381,10 @@ interface IERC20 {
      *
      * This value changes when {approve} or {transferFrom} are called.
      */
-    function allowance(address owner, address spender) external view returns (uint256);
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256);
 
     /**
      * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
@@ -387,7 +411,11 @@ interface IERC20 {
      *
      * Emits a {Transfer} event.
      */
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
 
     /**
      * @dev Emitted when `value` tokens are moved from one account (`from`) to
@@ -401,7 +429,11 @@ interface IERC20 {
      * @dev Emitted when the allowance of a `spender` for an `owner` is set by
      * a call to {approve}. `value` is the new allowance.
      */
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
 }
 
 // File: @openzeppelin/contracts/utils/Address.sol
@@ -432,9 +464,14 @@ library Address {
         // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned
         // for accounts without code, i.e. `keccak256('')`
         bytes32 codehash;
-        bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+
+
+            bytes32 accountHash
+         = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
         // solhint-disable-next-line no-inline-assembly
-        assembly { codehash := extcodehash(account) }
+        assembly {
+            codehash := extcodehash(account)
+        }
         return (codehash != 0x0 && codehash != accountHash);
     }
 
@@ -444,7 +481,11 @@ library Address {
      *
      * _Available since v2.4.0._
      */
-    function toPayable(address account) internal pure returns (address payable) {
+    function toPayable(address account)
+        internal
+        pure
+        returns (address payable)
+    {
         return address(uint160(account));
     }
 
@@ -467,20 +508,23 @@ library Address {
      * _Available since v2.4.0._
      */
     function sendValue(address payable recipient, uint256 amount) internal {
-        require(address(this).balance >= amount, "Address: insufficient balance");
+        require(
+            address(this).balance >= amount,
+            "Address: insufficient balance"
+        );
 
         // solhint-disable-next-line avoid-call-value
         (bool success, ) = recipient.call.value(amount)("");
-        require(success, "Address: unable to send value, recipient may have reverted");
+        require(
+            success,
+            "Address: unable to send value, recipient may have reverted"
+        );
     }
 }
 
 // File: @openzeppelin/contracts/token/ERC20/SafeERC20.sol
 
 pragma solidity 0.6.0;
-
-
-
 
 /**
  * @title SafeERC20
@@ -495,33 +539,83 @@ library SafeERC20 {
     using SafeMath for uint256;
     using Address for address;
 
-    function safeTransfer(IERC20 token, address to, uint256 value) internal {
-        callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
+    function safeTransfer(
+        IERC20 token,
+        address to,
+        uint256 value
+    ) internal {
+        callOptionalReturn(
+            token,
+            abi.encodeWithSelector(token.transfer.selector, to, value)
+        );
     }
 
-    function safeTransferFrom(IERC20 token, address from, address to, uint256 value) internal {
-        callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
+    function safeTransferFrom(
+        IERC20 token,
+        address from,
+        address to,
+        uint256 value
+    ) internal {
+        callOptionalReturn(
+            token,
+            abi.encodeWithSelector(token.transferFrom.selector, from, to, value)
+        );
     }
 
-    function safeApprove(IERC20 token, address spender, uint256 value) internal {
+    function safeApprove(
+        IERC20 token,
+        address spender,
+        uint256 value
+    ) internal {
         // safeApprove should only be called when setting an initial allowance,
         // or when resetting it to zero. To increase and decrease it, use
         // 'safeIncreaseAllowance' and 'safeDecreaseAllowance'
         // solhint-disable-next-line max-line-length
-        require((value == 0) || (token.allowance(address(this), spender) == 0),
+        require(
+            (value == 0) || (token.allowance(address(this), spender) == 0),
             "SafeERC20: approve from non-zero to non-zero allowance"
         );
-        callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
+        callOptionalReturn(
+            token,
+            abi.encodeWithSelector(token.approve.selector, spender, value)
+        );
     }
 
-    function safeIncreaseAllowance(IERC20 token, address spender, uint256 value) internal {
-        uint256 newAllowance = token.allowance(address(this), spender).add(value);
-        callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
+    function safeIncreaseAllowance(
+        IERC20 token,
+        address spender,
+        uint256 value
+    ) internal {
+        uint256 newAllowance = token.allowance(address(this), spender).add(
+            value
+        );
+        callOptionalReturn(
+            token,
+            abi.encodeWithSelector(
+                token.approve.selector,
+                spender,
+                newAllowance
+            )
+        );
     }
 
-    function safeDecreaseAllowance(IERC20 token, address spender, uint256 value) internal {
-        uint256 newAllowance = token.allowance(address(this), spender).sub(value, "SafeERC20: decreased allowance below zero");
-        callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
+    function safeDecreaseAllowance(
+        IERC20 token,
+        address spender,
+        uint256 value
+    ) internal {
+        uint256 newAllowance = token.allowance(address(this), spender).sub(
+            value,
+            "SafeERC20: decreased allowance below zero"
+        );
+        callOptionalReturn(
+            token,
+            abi.encodeWithSelector(
+                token.approve.selector,
+                spender,
+                newAllowance
+            )
+        );
     }
 
     /**
@@ -545,9 +639,13 @@ library SafeERC20 {
         (bool success, bytes memory returndata) = address(token).call(data);
         require(success, "SafeERC20: low-level call failed");
 
-        if (returndata.length != 0) { // Return data is optional
+        if (returndata.length != 0) {
+            // Return data is optional
             // solhint-disable-next-line max-line-length
-            require(abi.decode(returndata, (bool)), "SafeERC20: ERC20 operation did not succeed");
+            require(
+                abi.decode(returndata, (bool)),
+                "SafeERC20: ERC20 operation did not succeed"
+            );
         }
     }
 }
@@ -556,15 +654,16 @@ library SafeERC20 {
 
 pragma solidity 0.6.0;
 
-
-
 contract IRewardDistributionRecipient is Ownable {
     address public rewardDistribution;
 
     function notifyRewardAmount(uint256 reward) external virtual {}
 
     modifier onlyRewardDistribution() {
-        require(msg.sender == rewardDistribution, "Caller is not reward distribution");
+        require(
+            msg.sender == rewardDistribution,
+            "Caller is not reward distribution"
+        );
         _;
     }
 
@@ -579,11 +678,6 @@ contract IRewardDistributionRecipient is Ownable {
 // File: contracts/CurveRewards.sol
 
 pragma solidity 0.6.0;
-
-
-
-
-
 
 contract LPTokenWrapper {
     using SafeMath for uint256;
@@ -605,45 +699,59 @@ contract LPTokenWrapper {
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function withdraw(uint256 amount) public virtual{
+    function withdraw(uint256 amount) public virtual {
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         stakingToken.safeTransfer(msg.sender, amount);
-    } 
+    }
+
     function setBPT(address BPTAddress) internal {
         stakingToken = IERC20(BPTAddress);
     }
 }
 
 interface MultiplierInterface {
-  function getTotalMultiplier(address account) external view returns (uint256);
+    function getTotalMultiplier(address account)
+        external
+        view
+        returns (uint256);
 }
 
 interface CalculateCycle {
-  function calculate(uint256 deployedTime,uint256 currentTime,uint256 duration) external view returns(uint256);
+    function calculate(
+        uint256 deployedTime,
+        uint256 currentTime,
+        uint256 duration
+    ) external view returns (uint256);
 }
 
-contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
+contract NonMintableV3 is LPTokenWrapper, IRewardDistributionRecipient {
     // Token to be rewarded
     IERC20 public rewardToken = IERC20(address(0));
     IERC20 public multiplierToken = IERC20(address(0));
     MultiplierInterface public multiplier = MultiplierInterface(address(0));
     CalculateCycle public calculateCycle = CalculateCycle(address(0));
-    uint256 public constant DURATION = 4 weeks;
+    uint256 public DURATION;
 
     uint256 public periodFinish;
     uint256 public rewardRate;
     uint256 public lastUpdateTime;
     uint256 public rewardPerTokenStored;
     uint256 public deployedTime;
-    uint256 public constant napsDiscountRange = 8 hours;
+    uint256 public napsDiscountRange;
     uint256 public napsLevelOneCost;
     uint256 public napsLevelTwoCost;
     uint256 public napsLevelThreeCost;
+    uint256 public napsLevelFourCost;
+    uint256 public napsLevelFiveCost;
+    uint256 public napsLevelSixCost;
     uint256 public napsLevelOneBonus;
     uint256 public napsLevelTwoBonus;
     uint256 public napsLevelThreeBonus;
-    
+    uint256 public napsLevelFourBonus;
+    uint256 public napsLevelFiveBonus;
+    uint256 public napsLevelSixBonus;
+
     mapping(address => uint256) public userRewardPerTokenPaid;
     mapping(address => uint256) public rewards;
     mapping(address => uint256) public spentNAPS;
@@ -663,13 +771,24 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
         }
         _;
     }
-    constructor(address _stakingToken,address _rewardToken,address _multiplierToken,address _calculateCycleAddr,address _multiplierAddr,uint napsLevelOneCost,uint napsLevelTwoCost,uint napsLevelThreeCost,uint napsLevelOneBonus,uint napsLevelTwoBonus,uint napsLevelThreeBonus) public{
-      setBPT(_stakingToken);
-      rewardToken = IERC20(_rewardToken);
-      multiplierToken = IERC20(_multiplierToken);
-      calculateCycle = CalculateCycle(_calculateCycleAddr);
-      multiplier = MultiplierInterface(_multiplierAddr);
-      deployedTime = block.timestamp;
+
+    constructor(
+        uint256 _duration,
+        uint256 _napsDiscountRange,
+        address _stakingToken,
+        address _rewardToken,
+        address _multiplierToken,
+        address _calculateCycleAddr,
+        address _multiplierAddr
+    ) public {
+        DURATION = _duration;
+        napsDiscountRange = _napsDiscountRange;
+        setBPT(_stakingToken);
+        rewardToken = IERC20(_rewardToken);
+        multiplierToken = IERC20(_multiplierToken);
+        calculateCycle = CalculateCycle(_calculateCycleAddr);
+        multiplier = MultiplierInterface(_multiplierAddr);
+        deployedTime = block.timestamp;
     }
 
     function lastTimeRewardApplicable() public view returns (uint256) {
@@ -746,9 +865,14 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
         periodFinish = block.timestamp.add(DURATION);
         emit RewardAdded(reward);
     }
-    function setCycleContract(address _cycleContract) public onlyRewardDistribution {
+
+    function setCycleContract(address _cycleContract)
+        public
+        onlyRewardDistribution
+    {
         calculateCycle = CalculateCycle(_cycleContract);
     }
+
     // naps stuff
     function getLevel(address account) external view returns (uint256) {
         return NAPSlevel[account];
@@ -757,63 +881,109 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
     function getSpent(address account) external view returns (uint256) {
         return spentNAPS[account];
     }
+
     // Returns the number of naps token to boost
-    function calculateCost(uint256 level) public view returns(uint256) {
-        uint256 cycles = calculateCycle.calculate(deployedTime,block.timestamp,napsDiscountRange);
+    function calculateCost(uint256 level) public view returns (uint256) {
+        uint256 cycles = calculateCycle.calculate(
+            deployedTime,
+            block.timestamp,
+            napsDiscountRange
+        );
         // Cap it to 5 times
-        if(cycles > 5) {
+        if (cycles > 5) {
             cycles = 5;
         }
         // cost = level cost * (9^cycles) / (10^cycles)
         if (level == 1) {
-            return napsLevelOneCost.mul(9 ** cycles).div(10 ** cycles);
-        }else if(level == 2) {
-            return napsLevelTwoCost.mul(9 ** cycles).div(10 ** cycles);
-        }else if(level ==3) {
-            return napsLevelThreeCost.mul(9 ** cycles).div(10 ** cycles);
+            return napsLevelOneCost.mul(9**cycles).div(10**cycles);
+        } else if (level == 2) {
+            return napsLevelTwoCost.mul(9**cycles).div(10**cycles);
+        } else if (level == 3) {
+            return napsLevelThreeCost.mul(9**cycles).div(10**cycles);
+        } else if (level == 4) {
+            return napsLevelFourCost.mul(9**cycles).div(10**cycles);
+        } else if (level == 5) {
+            return napsLevelFiveCost.mul(9**cycles).div(10**cycles);
+        } else if (level == 6) {
+            return napsLevelSixCost.mul(9**cycles).div(10**cycles);
         }
     }
-    
+
     function purchase(uint256 level) external {
-        require(NAPSlevel[msg.sender] < level,"Cannot downgrade level or same level");
+        require(
+            NAPSlevel[msg.sender] < level,
+            "Cannot downgrade level or same level"
+        );
         uint256 cost = calculateCost(level);
         uint256 finalCost = cost.sub(spentNAPS[msg.sender]);
         // Owner dev fund
-        multiplierToken.safeTransferFrom(msg.sender,devFund,finalCost);
+        multiplierToken.safeTransferFrom(msg.sender, devFund, finalCost);
         spentNAPS[msg.sender] = spentNAPS[msg.sender].add(finalCost);
         NAPSlevel[msg.sender] = level;
         emit Boost(level);
     }
 
-    function setMultiplierAddress(address multiplierAddress) external onlyRewardDistribution {
-      multiplier = MultiplierInterface(multiplierAddress);
+    function setMultiplierAddress(address multiplierAddress)
+        external
+        onlyRewardDistribution
+    {
+        multiplier = MultiplierInterface(multiplierAddress);
     }
 
     function getTotalMultiplier(address account) public view returns (uint256) {
         uint256 zzzMultiplier = multiplier.getTotalMultiplier(account);
         uint256 napsMultiplier;
-        if(NAPSlevel[account] == 1) {
+        if (NAPSlevel[account] == 1) {
             napsMultiplier = napsLevelOneBonus;
-        }else if(NAPSlevel[account] == 2) {
+        } else if (NAPSlevel[account] == 2) {
             napsMultiplier = napsLevelTwoBonus;
-        }else if(NAPSlevel[account] == 3) {
+        } else if (NAPSlevel[account] == 3) {
             napsMultiplier = napsLevelThreeBonus;
+        } else if (NAPSlevel[account] == 4) {
+            napsMultiplier = napsLevelFourBonus;
+        } else if (NAPSlevel[account] == 5) {
+            napsMultiplier = napsLevelFiveBonus;
+        } else if (NAPSlevel[account] == 6) {
+            napsMultiplier = napsLevelSixBonus;
         }
-        return zzzMultiplier.add(napsMultiplier).add(1*10**18);
+        return zzzMultiplier.add(napsMultiplier).add(1 * 10**18);
     }
 
     function eject() external onlyRewardDistribution {
-        require(block.timestamp > periodFinish,"Cannot eject before period finishes");
+        require(
+            block.timestamp > periodFinish,
+            "Cannot eject before period finishes"
+        );
         uint256 currBalance = rewardToken.balanceOf(address(this));
-        rewardToken.safeTransfer(devFund,currBalance);
+        rewardToken.safeTransfer(devFund, currBalance);
     }
-    
-    function changeNAPSlevels(uint newLevelOneCost,uint newLevelTwoCost,uint newLevelThreeCost,uint newLevelOneBonus,uint newLevelTwoBonus,uint newLevelThreeBonus) public onlyRewardDistribution {
-         napsLevelOneCost = newLevelOneCost;
-         napsLevelTwoCost = newLevelTwoCost;
-         napsLevelThreeCost = newLevelThreeCost;
-         napsLevelOneBonus = newLevelOneBonus;
-         napsLevelTwoBonus = newLevelTwoBonus;
-         napsLevelThreeBonus = newLevelThreeBonus;
+
+    function changeNAPSlevels(
+        uint256 _napsLevelOneCost,
+        uint256 _napsLevelTwoCost,
+        uint256 _napsLevelThreeCost,
+        uint256 _napsLevelFourCost,
+        uint256 _napsLevelFiveCost,
+        uint256 _napsLevelSixCost,
+        uint256 _napsLevelOneBonus,
+        uint256 _napsLevelTwoBonus,
+        uint256 _napsLevelThreeBonus,
+        uint256 _napsLevelFourBonus,
+        uint256 _napsLevelFiveBonus,
+        uint256 _napsLevelSixBonus
+    ) public onlyRewardDistribution {
+        napsLevelOneCost = _napsLevelOneCost;
+        napsLevelTwoCost = _napsLevelTwoCost;
+        napsLevelThreeCost = _napsLevelThreeCost;
+        napsLevelFourCost = _napsLevelFourCost;
+        napsLevelFiveCost = _napsLevelFiveCost;
+        napsLevelSixCost = _napsLevelSixCost;
+
+        napsLevelOneBonus = _napsLevelOneBonus;
+        napsLevelTwoBonus = _napsLevelTwoBonus;
+        napsLevelThreeBonus = _napsLevelThreeBonus;
+        napsLevelFourBonus = _napsLevelFourBonus;
+        napsLevelFiveBonus = _napsLevelFiveBonus;
+        napsLevelSixBonus = _napsLevelSixBonus;
     }
 }
