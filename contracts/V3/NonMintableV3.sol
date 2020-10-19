@@ -643,9 +643,9 @@ contract NonMintableRewardPool is LPTokenWrapper, IRewardDistributionRecipient {
     uint256 public constant napsLevelFourCost = 128000000000000000000000;
     uint256 public constant napsLevelFiveCost = 168000000000000000000000;
     uint256 public constant napsLevelSixCost = 250000000000000000000000;
-    uint256 public constant FivePercentBonus = 5 ** 17;
+    uint256 public constant FivePercentBonus = 50000000000000000;
     uint256 public constant TenPercentBonus = 1 * 10 ** 17;
-    uint256 public constant FifteenPercentBonus = 15 ** 17;
+    uint256 public constant FifteenPercentBonus = 150000000000000000;
     uint256 public constant ThirtyPercentBonus = 3 * 10 ** 17;
     uint256 public constant FourtyPercentBonus = 4 * 10 ** 17;
     uint256 public constant SixtyPercentBonus = 6 * 10 ** 17;
